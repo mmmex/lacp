@@ -1,0 +1,14 @@
+---
+- name: Install tools
+  ansible.builtin.yum:
+    name:
+    - traceroute
+    - tcpdump
+    - net-tools
+    state: present
+    update_cache: true
+
+- name: Update glibc-common
+  ansible.builtin.yum:
+    name: glibc-common
+    update_only: yes
