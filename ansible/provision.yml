@@ -33,12 +33,14 @@
       networkmanager: "no"
       ipv6init: no
       network_additional_params:
+        hysdev: eth3
         vlan_id: "100"
         vlan: "yes"
     - device: eth3.101
       networkmanager: "no"
       ipv6init: no
       network_additional_params:
+        hysdev: eth3
         vlan_id: "101"
         vlan: "yes"
   tasks:
