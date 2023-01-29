@@ -1,0 +1,240 @@
+# code: language=ansible
+---
+- name: Setup centralRouter
+  hosts: centralRouter
+  become: true
+  ignore_errors: true
+  roles:
+  - role: install-depend
+  - role: system-tuning
+  - role: network
+    network_ifaces:
+    - device: bond0
+      networkmanager: "no"
+      ipv6init: no
+      ip: 192.168.255.2
+      gateway: 192.168.255.1
+      dns1: 8.8.8.8
+      prefix: 30
+      bondmaster: bond0
+    - device: eth1
+      networkmanager: "no"
+      ipv6init: no
+      bondmaster: bond0
+    - device: eth2
+      networkmanager: "no"
+      ipv6init: no
+      bondmaster: bond0
+    - device: eth3
+      networkmanager: "no"
+      ipv6init: no
+    - device: eth3.100
+      networkmanager: "no"
+      ipv6init: no
+      network_additional_params:
+        vlan_id: "100"
+        vlan: "yes"
+    - device: eth3.101
+      networkmanager: "no"
+      ipv6init: no
+      network_additional_params:
+        vlan_id: "101"
+        vlan: "yes"
+  tasks:
+  # - name: Remove team0
+  #   ansible.builtin.nmcli:
+  #     conn_name: team0
+  #     ifname: team0
+  #     state: absent
+  # - name: Add team0 interface
+  #   ansible.builtin.nmcli:
+  #     type: team
+  #     mode: active-backup
+  #     conn_name: team0
+  #     ifname: team0
+  #     ip4: '192.168.255.2/30'
+  #     #gw4: '192.168.255.1/30'
+  #     #dns4: '8.8.8.8'
+  #     state: present
+  # - name: Add team-slave eth1
+  #   ansible.builtin.nmcli:
+  #     type: team-slave
+  #     ifname: eth1
+  #     conn_name: eth1
+  #     master: team0
+  #     state: present
+  # - name: Add team-slave eth2
+  #   ansible.builtin.nmcli:
+  #     type: team-slave
+  #     ifname: eth2
+  #     conn_name: eth2
+  #     master: team0
+  #     state: present
+  - name: Setup routes and firewall nat rule
+    shell: |
+      ip route del default via 10.0.2.2
+  #     ip route add default via 192.168.255.1
+  - name: Iptables flush nat table
+    iptables:
+      table: nat
+      flush: yes
+  - name: Iptables setup nat rule
+    iptables:
+      table: nat
+      chain: POSTROUTING
+      destination: '!192.168.0.0/16'
+      out_interface: eth1
+      jump: MASQUERADE
+
+- name: Setup inetRouter
+  hosts: inetRouter
+  become: true
+  gather_facts: False
+  roles:
+  - role: network
+    network_ifaces:
+    - device: bond0
+      networkmanager: "no"
+      ipv6init: no
+      ip: 192.168.255.1
+      prefix: 30
+      bondmaster: bond0
+    - device: eth1
+      networkmanager: "no"
+      ipv6init: no
+      bondmaster: bond0
+    - device: eth2
+      networkmanager: "no"
+      ipv6init: no
+      bondmaster: bond0
+  # - role: install-depend
+  - role: system-tuning
+  tasks:
+  # - name: Remove team0
+  #   ansible.builtin.nmcli:
+  #     conn_name: team0
+  #     ifname: team0
+  #     state: absent
+  # - name: Add team0 interface
+  #   ansible.builtin.nmcli:
+  #     type: team
+  #     mode: active-backup
+  #     conn_name: team0
+  #     ifname: team0
+  #     ip4: '192.168.255.1/30'
+  #     #gw4: '192.168.255.1/30'
+  #     #dns4: '8.8.8.8'
+  #     state: present
+  # - name: Add team-slave eth1
+  #   ansible.builtin.nmcli:
+  #     type: team-slave
+  #     ifname: eth1
+  #     conn_name: eth1
+  #     master: team0
+  #     state: present
+  # - name: Add team-slave eth2
+  #   ansible.builtin.nmcli:
+  #     type: team-slave
+  #     ifname: eth2
+  #     conn_name: eth2
+  #     master: team0
+  #     state: present
+  - name: Iptables flush nat table
+    iptables:
+      table: nat
+      flush: yes
+  - name: Iptables setup nat rule
+    iptables:
+      table: nat
+      chain: POSTROUTING
+      destination: '!192.168.0.0/16'
+      out_interface: eth0
+      jump: MASQUERADE
+
+- name: Setup testClient1
+  hosts: testClient1
+  become: true
+  gather_facts: False
+  ignore_errors: true
+  roles:
+    # - role: install-depend
+    - role: network
+      network_ifaces:
+      - device: eth1
+        networkmanager: "no"
+        ipv6init: no
+      - device: vlan100
+        networkmanager: "no"
+        ipv6init: no
+        ip: 10.10.10.254
+        prefix: 24
+        network_additional_params:
+          physdev: eth1
+          vlan_id: "100"
+          vlan: "yes"
+
+- name: Setup testServer1
+  hosts: testServer1
+  become: true
+  gather_facts: False
+  ignore_errors: true
+  roles:
+    # - role: install-depend
+    - role: network
+      network_ifaces:
+      - device: eth1
+        networkmanager: "no"
+        ipv6init: no
+      - device: vlan100
+        networkmanager: "no"
+        ipv6init: no
+        ip: 10.10.10.1
+        prefix: 24
+        network_additional_params:
+          physdev: eth1
+          vlan_id: "100"
+          vlan: "yes"
+
+- name: Setup testClient2
+  hosts: testClient2
+  become: true
+  gather_facts: False
+  ignore_errors: true
+  roles:
+    # - role: install-depend
+    - role: network
+      network_ifaces:
+      - device: eth1
+        networkmanager: "no"
+        ipv6init: no
+      - device: vlan101
+        networkmanager: "no"
+        ipv6init: no
+        ip: 10.10.10.1
+        prefix: 24
+        network_additional_params:
+          physdev: eth1
+          vlan_id: "101"
+          vlan: "yes"
+
+- name: Setup testServer2
+  hosts: testServer2
+  become: true
+  gather_facts: False
+  ignore_errors: true
+  roles:
+    # - role: install-depend
+    - role: network
+      network_ifaces:
+      - device: eth1
+        networkmanager: "no"
+        ipv6init: no
+      - device: vlan101
+        networkmanager: "no"
+        ipv6init: no
+        ip: 10.10.10.254
+        prefix: 24
+        network_additional_params:
+          physdev: eth1
+          vlan_id: "101"
+          vlan: "yes"

@@ -1,0 +1,24 @@
+---
+- name: Install epel-release repo
+  ansible.builtin.yum:
+    name: epel-release
+    update_cache: yes
+    state: latest
+
+- name: Install dependencies and tools
+  ansible.builtin.yum:
+    name:
+    - traceroute
+    - tcpdump
+    - net-tools
+    # - NetworkManager-glib
+    # - nm-connection-editor.x86_64
+    # - libsemanage-python
+    # - policycoreutils-python
+    state: present
+    update_cache: true
+
+- name: Update glibc-common
+  ansible.builtin.yum:
+    name: glibc-common
+    update_only: yes

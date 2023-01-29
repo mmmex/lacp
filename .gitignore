@@ -1,0 +1,5 @@
+.vscode/
+.vagrant/
+*.log
+*.vdi
+TODO.md
