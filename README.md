@@ -3,13 +3,10 @@
 Задачи:
 
 - [X] в Office1 в тестовой подсети появляются сервера с доп интерфесами и адресами в internal сети testLAN:
-      - testClient1 - 10.10.10.254
-
-      - testClient2 - 10.10.10.254
-
-      - testServer1- 10.10.10.1
-
-      - testServer2- 10.10.10.1
+  - testClient1 - 10.10.10.254
+  - testClient2 - 10.10.10.254
+  - testServer1- 10.10.10.1
+  - testServer2- 10.10.10.1
 
 - [X] развести вланами
 
